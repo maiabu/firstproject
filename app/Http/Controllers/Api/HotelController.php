@@ -7,11 +7,12 @@ use Illuminate\Http\Request;
 use App\Models\Hotel;
 use App\Http\Resources\HotelResource;
 use App\Traits\ApiResponse;
+use App\Http\Requests\HotelRequest;
 
 class HotelController extends Controller
 {
     use ApiResponse;
-     public function store(Request $request)
+     public function store(HotelRequest $request)
     {
 
         $user = $request->user();
@@ -21,14 +22,7 @@ class HotelController extends Controller
          ],401);
         }
 
-        $validate = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:2000'],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'city' => ['required', 'string', 'max:255'],
-            'address' => ['required', 'string', 'max:255'],
-            'cover'   =>['required','image','mimes:jpg,png,jpeg,gif','max:2024'],
-        ]);
+        $validate = $request->validate();
 
         $hotel = Hotel::create($validate);
 
@@ -41,18 +35,8 @@ class HotelController extends Controller
                 'en' => 'succssefully'
 
             ],
-            'data' => [
-                'id'  => $hotel->id,
-                'name' => $hotel->name,
-                'description' => $hotel->description,
-                'category_id' => $hotel->category_id,
-                'category' => $hotel->catergory?->name,
-                'city' => $hotel->city,
-                'address' => $hotel->city,
-                'cover' => $hotel->cover_url
-
-            ],
-            'data'=> new HotelResource($hotel)
+            
+           'data'=> new HotelResource($hotel)
             ]);
     }
 
@@ -97,7 +81,7 @@ class HotelController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(HotelRequest $request, $id)
     {
 
         $user = $request->user();
@@ -124,13 +108,7 @@ class HotelController extends Controller
             ]);
         }
 
-        $validate = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:2000'],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'city' => ['required', 'string', 'max:255'],
-            'address' => ['required', 'string', 'max:255'],
-        ]);
+        $validate = $request->validate();
 
         $hotel->update($validate);
 
@@ -140,6 +118,24 @@ class HotelController extends Controller
                 'ar' => 'تم بنجاح',
                 'en' => 'update successfuly',
             ]
+        ]);
+    }
+
+    public function index(){
+        $hotels=Hotel::all();
+        return response()->json([
+            'status'=> true,
+            'message'=> 'successfully',
+            'data'=> HotelResource::collection($hotels)
+        ]);
+    }
+
+    public function show($id){
+        $hotel =Hotel::findOrFail($id);
+        return response()->json([
+            'status'=>true,
+            'message'=>'successfully',
+            'data'=> new HotelResource($hotel)
         ]);
     }
 }
